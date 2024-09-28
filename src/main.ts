@@ -25,8 +25,17 @@ async function bootstrap() {
   // Api
   setupB2BSwagger(app);
   setupB2CSwagger(app);
+  
+  // Start the REST API server
+  const port = process.env.PORT || 3000;
 
-  await app.listen(parseInt(process.env.PORT as string, 10) || 3000);
+  app.listen(port)
+    .then(() => {
+      console.log(`Application is running on: http://localhost:${port}`);
+    })
+    .catch((error) => {
+      console.error(`Failed to start the application on port ${port}`, error);
+    });
 }
 
 bootstrap();

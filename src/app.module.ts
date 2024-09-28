@@ -9,14 +9,20 @@ import { CustomCorsMiddleware } from '@atisiothings/laniakea-lib-http/dist/middl
 import { AuthGuard } from '@/security/auth.guard';
 
 const routes = [
-  '*/auth',
+  '*/*', //TODO: CONFIGURE ROUTES FOR CORS!!!
 ]
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     LoggerModule.forRoot({ level: 'debug' }),
-    AuthClientModule.forRoot('localhost:50051'),
+    PrometheusModule.register({
+      path: '/metrics',  // This will expose the metrics endpoint at /metrics
+      defaultMetrics: {
+        enabled: true,    // Enable default system metrics (CPU, memory, etc.)
+      },
+    }),    
+    AuthClientModule.forRoot(`${process.env.AUTH_SERVER_HOST}:${process.env.AUTH_SERVER_PORT}`),
   ],
   providers: [
     AppLogger,
