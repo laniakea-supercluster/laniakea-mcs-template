@@ -34,4 +34,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "job4"
-    needs: [job2, job3-1]
+    needs: [job1, job3-1]
