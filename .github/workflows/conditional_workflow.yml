@@ -39,12 +39,36 @@ jobs:
       - name: Fortify Security Scan
         run: echo "Running Fortify security scan for master branch"
 
+  # Single deploy job that has conditional dependencies and logic
   deploy:
-    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    needs: 
+      - test
+      - fortify
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
     steps:
-      - name: Deploy Application
-        run: echo "Deploying application for ${GITHUB_REF} branch"
+      - name: Determine Deployment Path
+        id: deployment-path
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
+            echo "Deploying to Dev Environment"
+            echo "target_environment=dev" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF}" == "refs/heads/master" ]]; then
+            echo "Deploying to Production Environment"
+            echo "target_environment=production" >> $GITHUB_ENV
+          else
+            echo "Unknown environment"
+            exit 1
+
+      - name: Deploy Based on Branch
+        run: |
+          if [[ "${target_environment}" == "dev" ]]; then
+            echo "Deploying to Dev environment"
+          elif [[ "${target_environment}" == "production" ]]; then
+            echo "Deploying to Production environment"
+          else
+            echo "No deployment environment found"
+            exit 1
 
   finish:
     runs-on: ubuntu-latest
