@@ -40,11 +40,8 @@ jobs:
         run: echo "Running Fortify security scan for master branch"
 
   deploy:
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' || if: github.ref == 'refs/heads/master'
-    needs: |
-      test
-      fortify  # Only runs if fortify is executed (for master)
     steps:
       - name: Deploy Application
         run: echo "Deploying application for ${GITHUB_REF} branch"
