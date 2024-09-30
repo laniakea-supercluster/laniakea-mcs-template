@@ -1,0 +1,77 @@
+name: Conditional Workflow
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Project
+        run: echo "Building project for PR to ${GITHUB_REF} branch"
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Run Tests
+        run: echo "Running tests for PR to ${GITHUB_REF} branch"
+
+  sonar:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: SonarQube Analysis
+        run: echo "Running SonarQube analysis for master branch"
+
+  fortify:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: sonar
+    steps:
+      - name: Fortify Security Scan
+        run: echo "Running Fortify security scan for master branch"
+
+  # Unified deploy job with conditional dependencies
+  deploy:
+    runs-on: ubuntu-latest
+    # Use conditionals to determine if the job should run and its dependencies
+    needs: [test, fortify]  # Define all potential dependencies as an array
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Determine Deployment Path
+        id: deployment-path
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
+            echo "Deploying to Dev Environment"
+            echo "target_environment=dev" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF}" == "refs/heads/master" ]]; then
+            echo "Deploying to Production Environment"
+            echo "target_environment=production" >> $GITHUB_ENV
+          else
+            echo "Unknown environment"
+            exit 1
+
+      - name: Deploy Based on Branch
+        run: |
+          if [[ "${target_environment}" == "dev" ]]; then
+            echo "Deploying to Dev environment"
+          elif [[ "${target_environment}" == "production" ]]; then
+            echo "Deploying to Production environment"
+          else
+            echo "No deployment environment found"
+            exit 1
+
+  finish:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Finish Process
+        run: echo "Finished workflow for ${GITHUB_REF} branch"
