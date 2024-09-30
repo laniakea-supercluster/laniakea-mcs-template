@@ -62,15 +62,17 @@ jobs:
       - name: Echo Security Test Message
         run: echo "Running security tests for PR to master branch from dev"
 
+  # Create Docker image
   docker-image:
     runs-on: ubuntu-latest
     needs: 
       - test
-      - security-test  # Ensure this job waits for `security-test` when running for master branch
+      - security-test  # Security test will only run for master PRs
     steps:
       - name: Echo Docker Image Creation Message
         run: echo "Creating Docker image for PR to ${GITHUB_BASE_REF} branch"
 
+  # Shared deployment job for both dev and master branches
   deploy:
     runs-on: ubuntu-latest
     needs: docker-image
