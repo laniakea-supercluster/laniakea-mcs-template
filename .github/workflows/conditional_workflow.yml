@@ -64,6 +64,7 @@ jobs:
 
   # Create Docker image
   docker-image:
+    if: github.base_ref == 'dev' || github.base_ref == 'master'
     runs-on: ubuntu-latest
     needs: 
       - test
@@ -74,6 +75,7 @@ jobs:
 
   # Shared deployment job for both dev and master branches
   deploy:
+    if: github.base_ref == 'dev' || github.base_ref == 'master'
     runs-on: ubuntu-latest
     needs: docker-image
     steps:
@@ -81,6 +83,7 @@ jobs:
         run: echo "Deploying to ${GITHUB_BASE_REF} environment"
 
   finish:
+    if: github.base_ref == 'dev' || github.base_ref == 'master'
     runs-on: ubuntu-latest
     needs: deploy
     steps:
