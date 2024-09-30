@@ -1,0 +1,137 @@
+name: Conditional Workflow
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - master
+
+env:
+  SHARED_VARIABLE: "This is a shared variable"
+
+jobs:
+  # Job for PR to the dev branch
+  build:
+    if: github.base_ref == 'dev' && github.head_ref != 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Echo Build Message for Dev
+        run: echo "Building project for PR to dev branch"
+  
+  test:
+    if: github.base_ref == 'dev' && github.head_ref != 'master'
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Echo Test Message for Dev
+        run: echo "Running tests for PR to dev branch"
+
+  docker-image:
+    if: github.base_ref == 'dev' && github.head_ref != 'master'
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Echo Docker Image Creation Message
+        run: echo "Creating Docker image for PR to dev branch"
+
+  deploy:
+    if: github.base_ref == 'dev' && github.head_ref != 'master'
+    runs-on: ubuntu-latest
+    needs: docker-image
+    steps:
+      - name: Echo Deployment Message
+        run: echo "Deploying to dev environment"
+
+  finish:
+    if: github.base_ref == 'dev' && github.head_ref != 'master'
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Finish Message for Dev
+        run: echo "Finished processing PR to dev branch"
+
+  # Job for PR to the master branch from dev
+  build-master:
+    if: github.base_ref == 'master' && github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Echo Build Message for Master
+        run: echo "Building project for PR to master branch from dev"
+  
+  test-master:
+    if: github.base_ref == 'master' && github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    needs: build-master
+    steps:
+      - name: Echo Test Message for Master
+        run: echo "Running tests for PR to master branch from dev"
+  
+  mutation-test:
+    if: github.base_ref == 'master' && github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    needs: test-master
+    steps:
+      - name: Echo Mutation Test Message
+        run: echo "Running mutation tests for PR to master branch from dev"
+  
+  regression-test:
+    if: github.base_ref == 'master' && github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    needs: mutation-test
+    steps:
+      - name: Echo Regression Test Message
+        run: echo "Running regression tests for PR to master branch from dev"
+  
+  business-test:
+    if: github.base_ref == 'master' && github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    needs: regression-test
+    steps:
+      - name: Echo Business Test Message
+        run: echo "Running business tests for PR to master branch from dev"
+  
+  security-test:
+    if: github.base_ref == 'master' && github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    needs: business-test
+    steps:
+      - name: Echo Security Test Message
+        run: echo "Running security tests for PR to master branch from dev"
+  
+  docker-image-master:
+    if: github.base_ref == 'master' && github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    needs: security-test
+    steps:
+      - name: Echo Docker Image Creation Message
+        run: echo "Creating Docker image for PR to master branch from dev"
+  
+  generate-version:
+    if: github.base_ref == 'master' && github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    needs: docker-image-master
+    steps:
+      - name: Echo Version Generation Message
+        run: echo "Generating version for PR to master branch from dev"
+  
+  deploy-master:
+    if: github.base_ref == 'master' && github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    needs: generate-version
+    steps:
+      - name: Echo Deployment Message
+        run: echo "Deploying to production environment"
+
+  finish-master:
+    if: github.base_ref == 'master' && github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    needs: deploy-master
+    steps:
+      - name: Finish Message for Master
+        run: echo "Finished processing PR to master branch from dev"
